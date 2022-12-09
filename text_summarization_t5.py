@@ -31,7 +31,7 @@ target_var = 'headline'
 splits = {'train': 0.8, 'val': 0.1, 'test': 0.1}
 random_seed = 42
 batch_size = 16
-num_train_epochs = 8
+num_train_epochs = 16
 
 
 # %%--------------------------------------------------------------------------------------------------------------------
