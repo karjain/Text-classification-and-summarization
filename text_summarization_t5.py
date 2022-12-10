@@ -1,8 +1,3 @@
-# from torch import nn
-# from transformers import BartForConditionalGeneration, BartTokenizerFast
-# from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, Seq2SeqTrainingArguments
-# from transformers import Seq2SeqTrainer, DataCollatorForSeq2Seq
-# from torch.utils.data import DataLoader
 import nltk
 import pandas as pd
 import os
@@ -18,6 +13,7 @@ from transformers import get_scheduler
 from tqdm.auto import tqdm
 import torch
 import numpy as np
+import random
 
 # %%--------------------------------------------------------------------------------------------------------------------
 from transformers import AutoModelForSeq2SeqLM, Seq2SeqTrainingArguments, DataCollatorForSeq2Seq, Seq2SeqTrainer, \
@@ -31,7 +27,7 @@ target_var = 'headline'
 splits = {'train': 0.8, 'val': 0.1, 'test': 0.1}
 random_seed = 42
 batch_size = 16
-num_train_epochs = 16
+num_train_epochs = 25
 
 
 # %%--------------------------------------------------------------------------------------------------------------------
@@ -44,7 +40,7 @@ def filter_train_indices(data):
 code_dir = os.getcwd()
 data_dir = os.path.join(os.path.split(code_dir)[0], '')
 df = pd.read_json('Data/sarcastic_output.json')
-# df = df[:50]
+# df = df[:512]
 # print(df.columns)
 df = df[['body', 'headline']]
 train_val_df = df[filter_train_indices(df)]
@@ -73,7 +69,6 @@ def show_samples(data, num_samples=3, seed=random_seed):
 show_samples(dataset)
 # %%--------------------------------------------------------------------------------------------------------------------
 tokenizer = AutoTokenizer.from_pretrained(model_checkpoint)
-
 
 # %%--------------------------------------------------------------------------------------------------------------------
 def preprocess_function(examples):
@@ -160,7 +155,7 @@ def postprocess_text(preds, labels):
 
 
 # Save the model into 'savedmodel' folder
-output_dir = 'savedmodel/small-t5'
+output_dir = 'savedmodel/t5-small-headline-generator'
 #
 progress_bar = tqdm(range(num_training_steps))
 
@@ -233,21 +228,45 @@ for epoch in range(num_train_epochs):
 
 from transformers import pipeline
 
-savedmodel = "savedmodel/small-t5"
+savedmodel = "savedmodel/t5-small-headline-generator"
 summarizer = pipeline("summarization", model=savedmodel)
-
-# print(dataset['test'][1])
 
 
 def print_summary(idx):
-    print(f'\n-- Prediction {i} --')
+    # print(f'\n-- Prediction {i} --')
     review = dataset['test'][idx]["body"]
     title = dataset["test"][idx]["headline"]
-    summary = summarizer(dataset["test"][idx]["body"],min_length=10, max_length=max_target_length)[0]["summary_text"]
-    print(f"'>>> Article: {review}'")
-    print(f"\n'>>> Headline: {title}'")
-    print(f"\n'>>> Summary: {summary}'")
+    summary = summarizer(dataset["test"][idx]["body"], min_length=10, max_length=max_target_length)[0]["summary_text"]
+    return review, title, summary
 
 
-for i in range(len(dataset['test'][:3])):
-    print_summary(i)
+main_list = []
+for i in range(len(dataset['test'])):
+    review,title,summary=print_summary(i)
+    temp=[]
+    temp.append(review)
+    temp.append(title)
+    temp.append(summary)
+    main_list.append(temp)
+
+# Print randomly some3 predictions
+prediction_index = []
+counter = 0
+while (counter < 3):
+    flag = False
+    index = random.randint(0, len(dataset['test']))
+    if index not in prediction_index:
+        flag = True
+        counter = counter + 1
+        prediction_index.append(index)
+    if flag == True:
+        review, title, summary = print_summary(index)
+        print(f'\n-- Prediction {counter} --')
+        print(f"'>>> Article: {review}'")
+        print(f"\n'>>> Headline: {title}'")
+        print(f"\n'>>> Summary: {summary}'")
+
+# Save predictions into csv file
+predications_df = pd.DataFrame(main_list, columns=['Body', 'Headline', 'Summary'])
+# print(predications_df)
+predications_df.to_csv('Predictions.csv')
