@@ -1,16 +1,16 @@
-
-# from google.colab import drive
-# import sys
-#
-# # Mount Google Drive
-# drive.mount('/content/drive')
-# import numpy as np
-# import pandas as pd
-#
-# data = pd.read_json(r'/content/drive/My Drive/Colab Notebooks/Sarcasm_Headlines_Dataset.json', lines = True)
-# data_v2 = pd.read_json(r'/content/drive/My Drive/Colab Notebooks/Sarcasm_Headlines_Dataset_v2.json', lines = True)
-
+# Imports
 import pandas as pd
+import re
+import nltk
+# nltk.download()
+from nltk.corpus import stopwords
+import torch
+import numpy as np
+from transformers import BertTokenizer
+from torch import nn
+from transformers import BertModel
+from torch.optim import AdamW
+from tqdm import tqdm
 
 
 data = pd.read_json(r'Sarcasm_Headlines_Dataset.json', lines = True)
@@ -28,19 +28,8 @@ df = pd.DataFrame()
 df['text'] = final_data['headline']
 df['label'] = final_data['is_sarcastic']
 
-# df['text'] = final_data['headline'][:500]
-# df['label'] = final_data['is_sarcastic'][:500]
-
-
-# df.groupby(['label']).size().plot.bar()
-
-
 
 # # pre processing
-import re
-import nltk
-# nltk.download()
-from nltk.corpus import stopwords
 
 # remove numbers
 print("Removing Numbers from text")
@@ -71,17 +60,11 @@ for sentence in df['text']:
 df['text'] = list
 print(df.head())
 
-import torch
-import numpy as np
-from transformers import BertTokenizer
-
+# BERT Tockenizing
 tokenizer = BertTokenizer.from_pretrained('bert-base-cased')
 labels = {0: 0,
           1: 1
           }
-
-
-# labels = [0,1]
 
 class Dataset(torch.utils.data.Dataset):
 
@@ -113,16 +96,14 @@ class Dataset(torch.utils.data.Dataset):
         return batch_texts, batch_y
 
 
+# Train-Test-Validation split
 np.random.seed(112)
 df_train, df_val, df_test = np.split(df.sample(frac=1, random_state=42),
                                      [int(.8 * len(df)), int(.9 * len(df))])
 
 print(len(df_train), len(df_val), len(df_test))
 
-from torch import nn
-from transformers import BertModel
-
-
+# Model Definition
 class BertClassifier(nn.Module):
 
     def __init__(self, dropout=0.3):
@@ -147,10 +128,7 @@ class BertClassifier(nn.Module):
         return final_layer
 
 
-from torch.optim import AdamW
-from tqdm import tqdm
-
-
+#  Training & Validating
 def train(model, train_data, val_data, learning_rate, epochs):
     train, val = Dataset(train_data), Dataset(val_data)
 
@@ -213,14 +191,13 @@ def train(model, train_data, val_data, learning_rate, epochs):
                 | Val Loss: {total_loss_val / len(val_data): .3f} \
                 | Val Accuracy: {total_acc_val / len(val_data): .3f}')
 
-
 EPOCHS = 4
 model = BertClassifier()
 LR = 1e-6
 
 train(model, df_train, df_val, LR, EPOCHS)
 
-
+# Testing
 def evaluate(model, test_data):
     test = Dataset(test_data)
 
@@ -247,5 +224,5 @@ def evaluate(model, test_data):
 
     print(f'Test Accuracy: {total_acc_test / len(test_data): .3f}')
 
-
 evaluate(model, df_test)
+
