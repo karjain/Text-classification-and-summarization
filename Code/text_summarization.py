@@ -233,7 +233,7 @@ if TRAIN_MODEL:
 
         # Extract the median ROUGE scores
         result = {k: round(v, 4) for k, v in result.items()}
-        print(f"Epoch {epoch}:", end=" ")
+        print(f"Epoch {epoch + 1}:", end=" ")
         for key, value in result.items():
             print(key, ' : ', value, end=" ")
         print(" ")
