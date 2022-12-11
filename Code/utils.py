@@ -29,7 +29,8 @@ def avail_data(data_dir):
         os.mkdir(data_dir)
     os.chdir(data_dir)
     file_id_mapping = {
-        "Combined_Headlines.json": "1NSpIABIfwZ3E1As6XVbNCX3do0D9MucI"
+        "Combined_Headlines.json": "1NSpIABIfwZ3E1As6XVbNCX3do0D9MucI",
+        "sarcastic_output.json": "19dS1iQ51oxRmiEkoArWUwW6BqXYDJGuo"
     }
     for key, value in file_id_mapping.items():
         if not os.path.exists(os.path.join(data_dir, key)):
@@ -45,11 +46,14 @@ def avail_models(model_dir):
         os.mkdir(model_dir)
     os.chdir(model_dir)
     file_id_mapping = {
-        "trans-roberta-model.pt": "1B4LyKm9qiTXXHPRPhOF8IlcXki0L65ae"
+        "trans-roberta-model.pt": "1B4LyKm9qiTXXHPRPhOF8IlcXki0L65ae",
+        "savedmodel.zip": "12Y8kVQA927vZ-6M1MHbm4DthFFX1bfua"
     }
     for key, value in file_id_mapping.items():
         if not os.path.exists(os.path.join(model_dir, key)):
             key_output = gdown.download(id=value, quiet=False)
             if key_output != key:
                 print(f"{key} could not be downloaded")
+        if key == "savedmodel.zip" and not os.path.exists(os.path.join(model_dir, "savedmodel")):
+            os.system("unzip savedmodel.zip")
     os.chdir(cur_dir)
