@@ -151,11 +151,11 @@ def train_model(model, train_data, val_data, learning_rate, epochs):
     criterion = nn.KLDivLoss(reduction="batchmean")
     optimizer = Adam(model.parameters(), lr=learning_rate)
     save_best_model = SaveBestModel()
-    acc_train_e = []
-    loss_train_e = []
-    acc_valid_e = []
-    loss_valid_e = []
-    epoch_list = []
+    acc_train_e = list()
+    loss_train_e = list()
+    acc_valid_e = list()
+    loss_valid_e = list()
+    epoch_list = list()
 
     if use_cuda:
         model = model.cuda()
@@ -182,7 +182,6 @@ def train_model(model, train_data, val_data, learning_rate, epochs):
                 "train_loss": total_loss_train / total_len_train,
                 "train_acc": total_acc_train / total_len_train
             })
-
 
         total_acc_val = 0
         total_loss_val = 0
@@ -212,29 +211,36 @@ def train_model(model, train_data, val_data, learning_rate, epochs):
         loss_train_e.append(total_loss_train / len(train_data))
         acc_valid_e.append(total_acc_val / len(val_data))
         loss_valid_e.append(total_loss_val / len(val_data))
-        epoch_list.append(epoch_num)
+        epoch_list.append(epoch_num + 1)
         metric_df = pd.DataFrame(list(zip(epoch_list, acc_train_e, loss_train_e, acc_valid_e, loss_valid_e)),
-                     columns=['Epoch', 'Accuracy_Train', 'Loss_train', 'Accuracy_valid', 'Loss_valid'])
+                                 columns=['Epoch', 'Accuracy_Train', 'Loss_train', 'Accuracy_valid', 'Loss_valid'])
         save_best_model(total_loss_val / len(val_data), epoch_num + 1, model, model_save_name)
 
-        print(metric_df)
+        # print(metric_df)
         if epoch_num == epochs-1:
-            metric_df.to_csv(os.path.join(data_dir,'Metrics.csv'))
+            metric_df.to_csv(os.path.join(data_dir, 'Metrics.csv'))
             plt.figure(figsize=(10, 10))
-            plt.plot(metric_df['Epoch'],metric_df['Accuracy_Train'], label='Train Accuracy')
-            plt.plot(metric_df['Epoch'], metric_df['Loss_train'], label='Train Loss')
-
+            plt.plot(metric_df['Epoch'], metric_df['Accuracy_Train'], label='Train Accuracy')
             plt.plot(metric_df['Epoch'], metric_df['Accuracy_valid'], label='Validation Accuracy')
+            plt.legend(fontsize=10)
+            plt.title('Model Performance per Epoch', fontsize=20)
+            plt.xlabel('Epoch', fontsize=15)
+            plt.ylabel('Accuracy', fontsize=15)
+            plt.savefig(os.path.join(data_dir, 'Accuracy_plot.png'))
+
+            plt.figure(figsize=(10, 10))
+            plt.plot(metric_df['Epoch'], metric_df['Loss_train'], label='Train Loss')
             plt.plot(metric_df['Epoch'], metric_df['Loss_valid'], label='Validation Loss')
             plt.legend(fontsize=10)
             plt.title('Model Performance per Epoch', fontsize=20)
             plt.xlabel('Epoch', fontsize=15)
-            plt.ylabel('Metric', fontsize=15)
+            plt.ylabel('Loss', fontsize=15)
 
-            plt.savefig(os.path.join(data_dir,'Metric_plot.png'))
+            plt.savefig(os.path.join(data_dir, 'Loss_plot.png'))
             # plt.show()
 
-EPOCHS = 3
+
+EPOCHS = 6
 tf_model = TransformerClassifier()
 LR = 1e-5
 

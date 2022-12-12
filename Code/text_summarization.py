@@ -53,16 +53,11 @@ else:
 print(f'TRAIN_MODEL={TRAIN_MODEL}')
 
 
-
-print(TRAIN_MODEL)
-
-
 # %%--------------------------------------------------------------------------------------------------------------------
 def filter_train_indices(data):
     train_idx = [len(x) > body_words_cutoff for x in data.body.str.split()]
     # np.percentile([len(x) for x in train_val_df.body.str.split()], 1)  # 57
     return np.array(train_idx)
-
 
 
 df = pd.read_json(os.path.join(data_dir, 'sarcastic_output.json'))
@@ -278,7 +273,7 @@ else:
     savedmodel = os.path.join(model_dir, "savedmodel/t5-small-headline-generator")
 summarizer = pipeline("summarization", model=savedmodel)
 
-print('predict')
+
 def return_summary(idx):
     reviews = dataset['test'][idx]["body"]
     titles = dataset["test"][idx]["headline"]
