@@ -39,6 +39,7 @@ final_data.info()
 final_df = pd.DataFrame()
 final_df['text'] = final_data['headline']
 final_df['label'] = final_data['is_sarcastic']
+final_df = final_df.sample(frac=0.015)
 final_df.groupby(['label']).size().plot.bar()
 
 
@@ -213,7 +214,7 @@ def train_model(model, train_data, val_data, learning_rate, epochs):
 
         print(metric_df)
         if epoch_num == epochs-1:
-            metric_df.to_csv('Metrics.csv')
+            metric_df.to_csv(os.path.join(data_dir,'Metrics.csv'))
             plt.figure(figsize=(10, 10))
             plt.plot(metric_df['Epoch'],metric_df['Accuracy_Train'], label='Train Accuracy')
             plt.plot(metric_df['Epoch'], metric_df['Loss_train'], label='Train Loss')
@@ -225,10 +226,10 @@ def train_model(model, train_data, val_data, learning_rate, epochs):
             plt.xlabel('Epoch', fontsize=15)
             plt.ylabel('Metric', fontsize=15)
 
-            plt.savefig('Metric plot.png')
+            plt.savefig(os.path.join(data_dir,'Metric_plot.png'))
             # plt.show()
 
-EPOCHS = 10
+EPOCHS = 3
 tf_model = TransformerClassifier()
 LR = 1e-5
 
