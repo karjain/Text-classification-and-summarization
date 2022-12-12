@@ -17,6 +17,7 @@ import random
 from datasets import DatasetDict, Dataset
 # import rouge_score
 import evaluate
+import argparse
 
 # %%--------------------------------------------------------------------------------------------------------------------
 # BATCH_SIZE = 32
@@ -30,6 +31,31 @@ random_seed = 42
 batch_size = 16
 num_train_epochs = 25
 
+code_dir = os.getcwd()
+data_dir = os.path.join(os.path.split(code_dir)[0], 'Data')
+avail_data(data_dir)
+model_dir = os.path.join(os.path.split(code_dir)[0], 'Model')
+avail_models(model_dir)
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-Train',  action='store_true')
+args = parser.parse_args()
+
+option = args.Train
+print(f'option={option}')
+if args.Train:
+    TRAIN_MODEL = True
+    print('Training')
+else:
+    print('only predict')
+    TRAIN_MODEL = False
+
+print(f'TRAIN_MODEL={TRAIN_MODEL}')
+
+
+
+print(TRAIN_MODEL)
+
 
 # %%--------------------------------------------------------------------------------------------------------------------
 def filter_train_indices(data):
@@ -38,13 +64,10 @@ def filter_train_indices(data):
     return np.array(train_idx)
 
 
-code_dir = os.getcwd()
-data_dir = os.path.join(os.path.split(code_dir)[0], 'Data')
-avail_data(data_dir)
-model_dir = os.path.join(os.path.split(code_dir)[0], 'Model')
-avail_models(model_dir)
+
 df = pd.read_json(os.path.join(data_dir, 'sarcastic_output.json'))
 df = df[['body', 'headline']]
+# df = df.sample(frac=0.05)
 train_val_df = df[filter_train_indices(df)]
 test_df = df[~filter_train_indices(df)]
 max_input_length = int(np.percentile([len(x) for x in train_val_df[input_var].str.split()], 99.5))
@@ -126,6 +149,7 @@ def postprocess_text(preds, label):
 
 
 if TRAIN_MODEL:
+    print('Training')
 
     # Fine-tuning
     # Convert the dataloader into torch
@@ -254,7 +278,7 @@ else:
     savedmodel = os.path.join(model_dir, "savedmodel/t5-small-headline-generator")
 summarizer = pipeline("summarization", model=savedmodel)
 
-
+print('predict')
 def return_summary(idx):
     reviews = dataset['test'][idx]["body"]
     titles = dataset["test"][idx]["headline"]

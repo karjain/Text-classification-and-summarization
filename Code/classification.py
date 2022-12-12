@@ -18,14 +18,19 @@ BATCH_SIZE = 32
 model_save_name = 'trans-roberta-model.pt'
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-Train', '--Train', help='Is training required(True/False)', required=False)
+parser.add_argument('-Train',  action='store_true')
 args = parser.parse_args()
 
-
+option = args.Train
+print(f'option={option}')
 if args.Train:
     TRAIN_MODEL = True
+    print('Training')
 else:
+    print('only predict')
     TRAIN_MODEL = False
+
+print(f'TRAIN_MODEL={TRAIN_MODEL}')
 
 code_dir = os.getcwd()
 data_dir = os.path.join(os.path.split(code_dir)[0], 'Data')
