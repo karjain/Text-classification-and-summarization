@@ -39,7 +39,7 @@ final_data.info()
 final_df = pd.DataFrame()
 final_df['text'] = final_data['headline']
 final_df['label'] = final_data['is_sarcastic']
-final_df = final_df.sample(frac=0.015)
+
 final_df.groupby(['label']).size().plot.bar()
 
 
