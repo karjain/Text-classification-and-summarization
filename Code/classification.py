@@ -11,10 +11,21 @@ from nltk.corpus import stopwords
 import numpy as np
 import matplotlib.pyplot as plt
 from utils import *
+import argparse
+
 plt.style.use('ggplot')
 BATCH_SIZE = 32
 model_save_name = 'trans-roberta-model.pt'
-TRAIN_MODEL = False
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-Train', '--Train', help='Is training required(True/False)', required=False)
+args = parser.parse_args()
+
+
+if args.Train:
+    TRAIN_MODEL = True
+else:
+    TRAIN_MODEL = False
 
 code_dir = os.getcwd()
 data_dir = os.path.join(os.path.split(code_dir)[0], 'Data')
@@ -134,10 +145,15 @@ def train_model(model, train_data, val_data, learning_rate, epochs):
     criterion = nn.KLDivLoss(reduction="batchmean")
     optimizer = Adam(model.parameters(), lr=learning_rate)
     save_best_model = SaveBestModel()
+    acc_train_e = []
+    loss_train_e = []
+    acc_valid_e = []
+    loss_valid_e = []
+    epoch_list = []
+
     if use_cuda:
         model = model.cuda()
         criterion = criterion.cuda()
-
     for epoch_num in range(epochs):
         total_acc_train = 0
         total_loss_train = 0
@@ -155,10 +171,13 @@ def train_model(model, train_data, val_data, learning_rate, epochs):
             model.zero_grad()
             batch_loss.backward()
             optimizer.step()
+
             pbar.set_postfix({
                 "train_loss": total_loss_train / total_len_train,
                 "train_acc": total_acc_train / total_len_train
             })
+
+
         total_acc_val = 0
         total_loss_val = 0
         total_len_val = 0
@@ -177,14 +196,39 @@ def train_model(model, train_data, val_data, learning_rate, epochs):
                     "val_loss": total_loss_val / total_len_val,
                     "val_acc": total_acc_val / total_len_val
                 })
+
         print(f"Epochs: {epoch_num + 1} | Train Loss: {total_loss_train / len(train_data): .3f} | "
               f"Train Accuracy: {total_acc_train / len(train_data): .3f} | "
               f"Val Loss: {total_loss_val / len(val_data): .3f} | "
               f"Val Accuracy: {total_acc_val / len(val_data): .3f}")
+
+        acc_train_e.append(total_acc_train / len(train_data))
+        loss_train_e.append(total_loss_train / len(train_data))
+        acc_valid_e.append(total_acc_val / len(val_data))
+        loss_valid_e.append(total_loss_val / len(val_data))
+        epoch_list.append(epoch_num)
+        metric_df = pd.DataFrame(list(zip(epoch_list, acc_train_e, loss_train_e, acc_valid_e, loss_valid_e)),
+                     columns=['Epoch', 'Accuracy_Train', 'Loss_train', 'Accuracy_valid', 'Loss_valid'])
         save_best_model(total_loss_val / len(val_data), epoch_num + 1, model, model_save_name)
 
+        print(metric_df)
+        if epoch_num == epochs-1:
+            metric_df.to_csv('Metrics.csv')
+            plt.figure(figsize=(10, 10))
+            plt.plot(metric_df['Epoch'],metric_df['Accuracy_Train'], label='Train Accuracy')
+            plt.plot(metric_df['Epoch'], metric_df['Loss_train'], label='Train Loss')
 
-EPOCHS = 5
+            plt.plot(metric_df['Epoch'], metric_df['Accuracy_valid'], label='Validation Accuracy')
+            plt.plot(metric_df['Epoch'], metric_df['Loss_valid'], label='Validation Loss')
+            plt.legend(fontsize=10)
+            plt.title('Model Performance per Epoch', fontsize=20)
+            plt.xlabel('Epoch', fontsize=15)
+            plt.ylabel('Metric', fontsize=15)
+
+            plt.savefig('Metric plot.png')
+            # plt.show()
+
+EPOCHS = 10
 tf_model = TransformerClassifier()
 LR = 1e-5
 
