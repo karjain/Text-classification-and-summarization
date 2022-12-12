@@ -27,10 +27,11 @@ This is a comparative study to evalute different text classification and text su
   python3 -u text_summarization.py
   
 ```
-
+Additionally <b><u>-train</u></b> argument can be used to begin the traning phase, otherwise, only prediction method is called on the test data using the already trained model
 <ul> 
-<li><b>classifitext_summarization.py</b> file runs the text summarization pipeline and generate summarize text from the news article </li>
-<li><b>text_summarization.py </b>file runs the text summarization pipeline and generate summarize text from the news article </li>
+<li><b>classification.py</b> file runs the text summarization pipeline and generate summarize text from the news article. It uses a Transformers based RoBERTa + MLP architecture and achieves 98% accuracy on the test data </li>
+<br>
+<li><b>text_summarization.py </b>file runs the text summarization pipeline and generate summarize text from the news article. It uses a Transformers based T5small architecture pre-trained on News articles. Achieves Roug1 score of 0.52 on the test data  </li>
 </ul>
 
 
