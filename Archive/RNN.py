@@ -8,6 +8,8 @@ from torchtext.data.utils import get_tokenizer
 from torchtext.vocab import build_vocab_from_iterator
 from torch.utils.data import DataLoader
 import time
+from utils import avail_data
+torch.autograd.set_detect_anomaly(True)
 
 # %%------------------------------------------------------------------------------
 EPOCHS = 10
@@ -18,12 +20,12 @@ hidden_size = 16
 # %%------------------------------------------------------------------------------
 code_dir = os.getcwd()
 data_dir = os.path.join(os.path.split(code_dir)[0], 'Data')
-train_file = os.path.join(data_dir, 'Sarcasm_Headlines_Dataset.json')
-test_file = os.path.join(data_dir, 'Sarcasm_Headlines_Dataset_v2.json')
-df1 = pd.read_json(train_file, lines=True)
-df2 = pd.read_json(test_file, lines=True)
-# df_train, df_test = df1, df2
-df = pd.concat([df1, df2], axis=0)
+avail_data(data_dir)
+model_dir = os.path.join(os.path.split(code_dir)[0], 'Model')
+if not os.path.exists(model_dir):
+    os.mkdir(model_dir)
+df_file = os.path.join(data_dir, 'Combined_Headlines.json')
+df = pd.read_json(df_file)
 df_train, df_test = train_test_split(df, test_size=0.2, stratify=df['is_sarcastic'], shuffle=True)
 train_iter = tuple(zip(list(df_train['headline']), list(df_train['is_sarcastic'])))
 test_iter = tuple(zip(list(df_test['headline']), list(df_test['is_sarcastic'])))
@@ -101,31 +103,23 @@ class TextClassificationModel(nn.Module):
             self.embedding.weight.requires_grad = True
         else:
             self.embedding.weight.requires_grad = False
-        self.lstm = nn.LSTM(embed_dim, hidden_dim)
-        hs = torch.autograd.Variable(torch.zeros(1, hidden_dim))
-        cs = torch.autograd.Variable(torch.zeros(1, hidden_dim))
-        if device.type == 'cuda':
-            self.hs = hs.cuda()
-            self.cs = cs.cuda()
-        else:
-            self.hs = hs
-            self.cs = cs
+        self.rnn = nn.RNN(embed_dim, hidden_dim)
         self.fc = nn.Linear(hidden_dim, num_classes)
         self.init_weights()
 
     def init_weights(self):
         initrange = 0.5
         self.embedding.weight.data.uniform_(-initrange, initrange)
-        self.lstm.weight_ih_l0.data.uniform_(-initrange, initrange)
-        self.lstm.weight_hh_l0.data.uniform_(-initrange, initrange)
-        self.lstm.bias_ih_l0.data.uniform_(-initrange, initrange)
-        self.lstm.bias_hh_l0.data.uniform_(-initrange, initrange)
+        self.rnn.weight_ih_l0.data.uniform_(-initrange, initrange)
+        self.rnn.weight_hh_l0.data.uniform_(-initrange, initrange)
+        self.rnn.bias_ih_l0.data.uniform_(-initrange, initrange)
+        self.rnn.bias_hh_l0.data.uniform_(-initrange, initrange)
         self.fc.weight.data.uniform_(-initrange, initrange)
         self.fc.bias.data.zero_()
 
     def forward(self, text, offsets):
         embedded = self.embedding(text, offsets)
-        output, (self.hs, self.cs) = self.lstm(embedded, (self.hs, self.cs))
+        output, _ = self.rnn(embedded)
         return self.fc(output)
 
 
@@ -153,7 +147,7 @@ def train(dataloader):
         loss.backward(retain_graph=True)
         torch.nn.utils.clip_grad_norm_(model.parameters(), 0.1)
         optimizer.step()
-        total_acc += torch.FloatTensor(predicted_label.argmax(1) == label, device=device).sum().item()
+        total_acc += (predicted_label.argmax(1) == label).sum().item()
         total_count += label.size(0)
         if ix % log_interval == 0 and ix > 0:
             elapsed = time.time() - start_time
@@ -172,7 +166,7 @@ def evaluate(dataloader):
         for ix, (label, text, offsets) in enumerate(dataloader):
             predicted_label = model(text, offsets)
             # loss = criterion(predicted_label, label)
-            total_acc += torch.FloatTensor(predicted_label.argmax(1) == label, device=device).sum().item()
+            total_acc += (predicted_label.argmax(1) == label).sum().item()
             total_count += label.size(0)
     return total_acc/total_count
 
@@ -199,7 +193,7 @@ for epoch in range(1, EPOCHS + 1):
                                            time.time() - epoch_start_time, accu_val))
     print('-' * 59)
 # %%------------------------------------------------------------------------------
-torch.save(model.state_dict(), 'model_weights.pt')
+torch.save(model.state_dict(), os.path.join(model_dir, 'model_weights.pt'))
 # load the model first for inference
-model.load_state_dict(torch.load('model_weights.pt'))
+model.load_state_dict(torch.load(os.path.join(model_dir, 'model_weights.pt')))
 model.eval()
