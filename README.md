@@ -7,7 +7,7 @@ This is a comparative study to evalute different text classification and text su
     <li>Classification</li>
         <ul>
             <li>Classical model</li>
-            <li>MLP model using GloVe embeddings</li>
+            <li>MLP and RNN model using GloVe embeddings</li>
             <li>Transformers - BERT + MLP</li>
             <li>Transformers - RoBERTa + MLP</li>
         </ul>
