@@ -30,7 +30,8 @@ def avail_data(data_dir):
     os.chdir(data_dir)
     file_id_mapping = {
         "Combined_Headlines.json": "1NSpIABIfwZ3E1As6XVbNCX3do0D9MucI",
-        "sarcastic_output.json": "19dS1iQ51oxRmiEkoArWUwW6BqXYDJGuo"
+        "sarcastic_output.json": "19dS1iQ51oxRmiEkoArWUwW6BqXYDJGuo",
+        "glove.6B.50d.txt": "1IJE5wg2kvsUVKagg6U2hoCyrTxZlaAUe"
     }
     for key, value in file_id_mapping.items():
         if not os.path.exists(os.path.join(data_dir, key)):
