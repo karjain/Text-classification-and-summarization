@@ -4,6 +4,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import accuracy_score, f1_score
 from sklearn.model_selection import train_test_split
+from utils import avail_data
 import os
 import nltk
 
@@ -38,20 +39,11 @@ def process_text(data):
 
 code_dir = os.getcwd()
 data_dir = os.path.join(os.path.split(code_dir)[0], 'Data')
-train_file = os.path.join(data_dir, 'Sarcasm_Headlines_Dataset.json')
-test_file = os.path.join(data_dir, 'Sarcasm_Headlines_Dataset_v2.json')
-df1 = pd.read_json(train_file, lines=True)
-df2 = pd.read_json(test_file, lines=True)
-# df_train, df_test = df1, df2
-df = pd.concat([df1, df2], axis=0)
+avail_data(data_dir)
+df = pd.read_json(os.path.join(data_dir, 'Combined_Headlines.json'))
 df_train, df_test = train_test_split(df, test_size=0.2, stratify=df['is_sarcastic'], shuffle=True)
 X_train, y_train = df_train['headline'], df_train['is_sarcastic']
 X_test, y_test = df_test['headline'], df_test['is_sarcastic']
-
-# print("Processing train data")
-# X_train = process_text(X_train)
-# print("\nProcessing test data")
-# X_test = process_text(X_test)
 
 tfidf = TfidfVectorizer()
 tfidf.fit(X_train)

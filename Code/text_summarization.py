@@ -7,7 +7,7 @@ import pandas as pd
 import os
 # from sklearn.model_selection import train_test_split
 from torch.optim import AdamW
-from tqdm.auto import tqdm
+from tqdm import tqdm
 from utils import avail_data, avail_models
 from nltk import sent_tokenize
 from accelerate import Accelerator
@@ -22,7 +22,7 @@ import evaluate
 # BATCH_SIZE = 32
 body_words_cutoff = 30
 model_checkpoint = "JulesBelveze/t5-small-headline-generator"
-TRAIN_MODEL = True
+TRAIN_MODEL = False
 input_var = 'body'
 target_var = 'headline'
 splits = {'train': 0.8, 'val': 0.1, 'test': 0.1}

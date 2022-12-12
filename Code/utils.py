@@ -47,13 +47,19 @@ def avail_models(model_dir):
     os.chdir(model_dir)
     file_id_mapping = {
         "trans-roberta-model.pt": "1B4LyKm9qiTXXHPRPhOF8IlcXki0L65ae",
-        "savedmodel.zip": "12Y8kVQA927vZ-6M1MHbm4DthFFX1bfua"
+        "t5-small-headline-generator.zip": "1HB6hN2PYnAFNplfhVB2JNvr1Oym_LsWR"
     }
     for key, value in file_id_mapping.items():
         if not os.path.exists(os.path.join(model_dir, key)):
             key_output = gdown.download(id=value, quiet=False)
             if key_output != key:
                 print(f"{key} could not be downloaded")
-        if key == "savedmodel.zip" and not os.path.exists(os.path.join(model_dir, "savedmodel")):
-            os.system("unzip savedmodel.zip")
+                break
+        if key[-4:] == ".zip":
+            savedmodel_dir = os.path.join(model_dir, "savedmodel")
+            if not os.path.exists(savedmodel_dir):
+                os.mkdir(savedmodel_dir)
+            if not os.path.exists(os.path.join(savedmodel_dir, key[:-4])):
+                os.system(f"unzip {key} -d {savedmodel_dir}")
+            os.unlink(key)
     os.chdir(cur_dir)
