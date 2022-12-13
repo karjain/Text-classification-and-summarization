@@ -242,7 +242,7 @@ def train_model(model, train_data, val_data, learning_rate, epochs):
 
 EPOCHS = 6
 tf_model = TransformerClassifier()
-LR = 1e-5
+LR = 1e-6
 
 if TRAIN_MODEL:
     train_model(tf_model, df_train, df_val, LR, EPOCHS)
@@ -258,6 +258,8 @@ def evaluate(test_data):
     if use_cuda:
         best_model = best_model.cuda()
     best_model.load_state_dict(torch.load(os.path.join(model_dir, model_save_name)))
+    full_output = list()
+    full_label = list()
     total_acc_test = 0
     total_len_test = 0
     with torch.no_grad():
@@ -269,7 +271,13 @@ def evaluate(test_data):
             acc = torch.logical_not(torch.logical_xor(output.argmax(dim=1), test_label.argmax(dim=1))).sum().item()
             total_acc_test += acc
             total_len_test += len(test_label)
+            full_output.extend(list(output.argmax(dim=1).cpu().numpy()))
+            full_label.extend(list(test_label.argmax(dim=1).cpu().numpy()))
             pbar.set_postfix({"test_acc": total_acc_test / total_len_test})
+    df_output = pd.DataFrame(test_data['text'], columns=['text'])
+    df_output['output'] = full_output
+    df_output['label'] = full_label
+    df_output.to_csv(os.path.join(data_dir, 'error_output.csv'), index=False)
     print(f'Test Accuracy: {total_acc_test / len(test_data): .3f}')
 
 
