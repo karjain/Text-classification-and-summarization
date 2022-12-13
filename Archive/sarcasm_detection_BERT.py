@@ -11,10 +11,21 @@ from torch import nn
 from transformers import BertModel
 from torch.optim import AdamW
 from tqdm import tqdm
+import sys
+import os
 
+code_dir = os.getcwd()
+data_dir = os.path.join(os.path.split(code_dir)[0], 'Data')
+utils_dir = os.path.join(os.path.split(code_dir)[0], 'Code')
+sys.path.insert(0, f'{utils_dir}')
+from utils import avail_data
+avail_data(data_dir)
+model_dir = os.path.join(os.path.split(code_dir)[0], 'Model')
+if not os.path.exists(model_dir):
+    os.mkdir(model_dir)
 
-data = pd.read_json(r'Sarcasm_Headlines_Dataset.json', lines = True)
-data_v2 = pd.read_json(r'Sarcasm_Headlines_Dataset_v2.json', lines = True)
+data = pd.read_json(os.path.join(data_dir,'Sarcasm_Headlines_Dataset.json'), lines = True)
+data_v2 = pd.read_json(os.path.join(data_dir,'Sarcasm_Headlines_Dataset.json'), lines = True)
 
 print(data.shape)
 print(data_v2.shape)
