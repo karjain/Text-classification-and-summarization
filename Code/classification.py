@@ -12,6 +12,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from utils import *
 import argparse
+from sklearn.metrics import classification_report
 
 plt.style.use('ggplot')
 BATCH_SIZE = 32

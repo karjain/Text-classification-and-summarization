@@ -8,7 +8,7 @@ from torchtext.data.utils import get_tokenizer
 from torchtext.vocab import build_vocab_from_iterator
 from torch.utils.data import DataLoader
 import time
-from utils import avail_data
+import sys
 torch.autograd.set_detect_anomaly(True)
 
 # %%------------------------------------------------------------------------------
@@ -20,6 +20,9 @@ hidden_size = 16
 # %%------------------------------------------------------------------------------
 code_dir = os.getcwd()
 data_dir = os.path.join(os.path.split(code_dir)[0], 'Data')
+utils_dir = os.path.join(os.path.split(code_dir)[0], 'Code')
+sys.path.insert(0, f'{utils_dir}')
+from utils import avail_data
 avail_data(data_dir)
 model_dir = os.path.join(os.path.split(code_dir)[0], 'Model')
 if not os.path.exists(model_dir):

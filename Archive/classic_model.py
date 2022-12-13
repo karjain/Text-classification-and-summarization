@@ -4,9 +4,10 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import accuracy_score, f1_score
 from sklearn.model_selection import train_test_split
-from utils import avail_data
+
 import os
 import nltk
+import sys
 
 
 def model(clf, name):
@@ -39,6 +40,9 @@ def process_text(data):
 
 code_dir = os.getcwd()
 data_dir = os.path.join(os.path.split(code_dir)[0], 'Data')
+utils_dir = os.path.join(os.path.split(code_dir)[0], 'Code')
+sys.path.insert(0, f'{utils_dir}')
+from utils import avail_data
 avail_data(data_dir)
 df = pd.read_json(os.path.join(data_dir, 'Combined_Headlines.json'))
 df_train, df_test = train_test_split(df, test_size=0.2, stratify=df['is_sarcastic'], shuffle=True)
